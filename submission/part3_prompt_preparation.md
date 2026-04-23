@@ -1,5 +1,7 @@
 # Part 3: Prompt Preparation
 
+Selected PR: https://github.com/beetbox/beets/pull/3877
+
 ## Task 3.1: Comprehensive Prompt Documentation
 
 I’ve chosen **PR #3877 (Web Read-only Mode)** from the beets repo for this task. It’s a great example to use for prompt engineering because the goal is clear: add a security layer that works across the whole plugin without breaking existing functionality.
@@ -23,25 +25,24 @@ That’s obviously a problem if you just want to share your music with friends o
 *   The check should be centralized (like a Flask `before_request` hook) so we don't have to update every single endpoint.
 *   Don't block `GET`, `HEAD`, or `OPTIONS`—we still need those for browsing and browser checks.
 
-### 3.1.4 Things to watch out for (Edge Cases)
+### 3.1.4 Edge Cases
 *   **Missing config**: If the user doesn't have the `readonly` key in their file, it should just default to `true`.
 *   **The UI**: Ideally, we shouldn't even show "Delete" buttons in the web UI if we're in read-only mode, but the backend enforcement is the priority.
 *   **Database locks**: Since beets uses SQLite, we need to make sure that allowing writes (when `readonly` is off) doesn't cause weird locking issues, though the core library usually handles that.
 
 ### 3.1.5 The Task Prompt
-"I need you to implement a 'read-only' mode for the beets `web` plugin. Right now, anyone can edit the library through the web interface, which is a security risk.
+Implement a 'read-only' mode for the beets `web` plugin. Currently, the web interface allows modifications, which can lead to unintended changes.
 
-First, update `beets/config_default.yaml` to add a `readonly` flag under the `web` section, set to `true`.
+First, update `beets/config_default.yaml` to include a `readonly` flag under the `web` section, set to `true` by default.
 
-Then, in `beetsplug/web/__init__.py`, add a check that runs before every request. If `readonly` is enabled and the request method is POST, PUT, DELETE, or PATCH, return a 405 error. Make sure GET, HEAD, and OPTIONS still work so people can still browse their music.
+Next, modify `beetsplug/web/__init__.py` to include a check before processing requests. If `readonly` is enabled and the request method is POST, PUT, DELETE, or PATCH, return a 405 error. Ensure that GET, HEAD, and OPTIONS requests are allowed.
 
-Finally, update the tests in `tests/test_web.py` to confirm that:
-1. Browsing still works in both modes.
-2. Deleting a track fails with a 405 when read-only is on.
-3. Deleting a track works fine when read-only is turned off.
-
-Keep the code clean and stick to the patterns already used in the web plugin."
-
+Finally, update `tests/test_web.py` to verify:
+1. Read operations work in both modes.
+2. Write operations fail when read-only mode is enabled.
+3. Write operations succeed when read-only mode is disabled.
+   
+Ensure the implementation follows existing coding patterns and maintains clarity.
 ---
 
 I confirm that this documentation and the prompt were written by me, based on my own analysis of the beets project and the specific requirements of the PR.
